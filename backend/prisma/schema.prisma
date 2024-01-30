@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id                              Int       @id @default(autoincrement())
+  nickname                        String?   @unique @db.VarChar(16)
+  email                           String?   @unique @db.VarChar(32)
+  imgpath                         String?   @db.VarChar(100)
+  password                        String?   @db.VarChar(80)
+  role                            String?   @default("client") @db.VarChar(8)
+  score                           Int?      @default(300)
+  countofwin                      Int?      @default(0)
+  countoflose                     Int?      @default(0)
+  banned                          Boolean?  @default(false)
+  banreason                       String?   @db.VarChar(100)
+  friends_friends_friendidTousers friends[] @relation("friends_friendidTousers")
+  friends_friends_useridTousers   friends[] @relation("friends_useridTousers")
+  game                            game[]
+  history                         history[]
+}
+
+model friends {
+  id                            Int      @id @default(autoincrement())
+  userid                        Int?
+  friendid                      Int?
+  confirm                       Boolean? @default(false)
+  users_friends_friendidTousers users?   @relation("friends_friendidTousers", fields: [friendid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_friends_useridTousers   users?   @relation("friends_useridTousers", fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model game {
+  id       Int       @id @default(autoincrement())
+  winner   Int?
+  gamedate String?   @db.VarChar(24)
+  users    users?    @relation(fields: [winner], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  history  history[]
+}
+
+model history {
+  id     Int    @id @default(autoincrement())
+  gameid Int?
+  userid Int?
+  game   game?  @relation(fields: [gameid], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users  users? @relation(fields: [userid], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "history_user_id_fkey")
+}
